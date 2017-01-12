@@ -117,62 +117,83 @@
         showLoading: function () { var $this = this; $this.$elem.find('.imggrid-loading').show(); },
         hideLoading: function () { var $this = this; $this.$elem.find('.imggrid-loading').hide(); },
         isActivePageBtn: function (o) { if ($(o).hasClass('imggrid-disabled')) { return false; } else { return true } },
+        formatData: function (data) {
+            var $this = this;
+            var pagediv = $this.$elem.find('.imggrid-page');
+            $this.options.page.records = data.records;
+            $this.options.page.total = parseInt(data.records / $this.options.page.rows) + (data.records % $this.options.page.rows > 0 ? 1 : 0);
+            if ($this.options.page.page <= 1) {
+                pagediv.find('.first_gridPager').addClass('imggrid-disabled');
+                pagediv.find('.prev_gridPager').addClass('imggrid-disabled');
+            } else {
+                pagediv.find('.first_gridPager').removeClass('imggrid-disabled');
+                pagediv.find('.prev_gridPager').removeClass('imggrid-disabled');
+            }
+            if ($this.options.page.page >= $this.options.page.total) {
+                pagediv.find('.next_gridPager').addClass('imggrid-disabled');
+                pagediv.find('.last_gridPager').addClass('imggrid-disabled');
+            } else {
+                pagediv.find('.next_gridPager').removeClass('imggrid-disabled');
+                pagediv.find('.last_gridPager').removeClass('imggrid-disabled');
+            }
+            $this.$elem.find('.imggrid-totalPage').html($this.options.page.total);
+            var startrecord = ($this.options.page.page - 1) * $this.options.page.rows + 1;
+            var endrecord = ($this.options.page.page - 1) * $this.options.page.rows + data.rows.length;
+            $this.$elem.find('.imggrid-right').html('显示第 ' + startrecord + ' - ' + endrecord + ' 条记录　检索到 ' + $this.options.page.records + ' 条记录');
+            $this.data = data.rows;
+            if (data.rows.length > 0) {
+                var strs = [];
+                $.each(data.rows, function (index, item) {
+                    strs.push('<li rowno="' + index + '">' + $this.options.render(item, index) + '</li>');
+                })
+                $this.$elem.find('.imggrid-list ul').html(strs.join(''));
+                $this.$elem.find('.imggrid-list ul li').css('width', $this.options.img.width).css('height', $this.options.img.width);
+                if ($this.options.onClick) {
+                    $this.$elem.find('.imggrid-list ul li').on('click', function () {
+                        var $li = $(this);
+                        var index = parseInt($li.attr('rowno'));
+                        $this.options.onClick($li, index, $this.data[index]);
+                    });
+                }
+                if ($this.options.img.animate) {
+                    $this.$elem.find('.imggrid-list ul li img').animateCss($this.options.img.animate);
+                }
+            } else {
+                $this.$elem.find('.imggrid-list  ul').html('<li>无数据</li>');
+            }
+        },
         loadData: function () {
             var $this = this;
-            $this.showLoading();
             var pagediv = $this.$elem.find('.imggrid-page');
             pagediv.find('.imggrid-page-input').val($this.options.page.page);
-            $.ajax({
-                type: this.options.type, url: $this.options.url, data: $.param($.extend($this.defaults.page, $this.options.params)), dataType: 'json',
-                success: function (data) {
-                    $this.hideLoading();
-                    if (!data.message) {
-                        $this.options.page.records = data.records;
-                        $this.options.page.total = parseInt(data.records / $this.options.page.rows) + (data.records % $this.options.page.rows > 0 ? 1 : 0);
-                        if ($this.options.page.page <= 1) {
-                            pagediv.find('.first_gridPager').addClass('imggrid-disabled');
-                            pagediv.find('.prev_gridPager').addClass('imggrid-disabled');
-                        } else {
-                            pagediv.find('.first_gridPager').removeClass('imggrid-disabled');
-                            pagediv.find('.prev_gridPager').removeClass('imggrid-disabled');
-                        }
-                        if ($this.options.page.page >= $this.options.page.total) {
-                            pagediv.find('.next_gridPager').addClass('imggrid-disabled');
-                            pagediv.find('.last_gridPager').addClass('imggrid-disabled');
-                        } else {
-                            pagediv.find('.next_gridPager').removeClass('imggrid-disabled');
-                            pagediv.find('.last_gridPager').removeClass('imggrid-disabled');
-                        }
-                        $this.$elem.find('.imggrid-totalPage').html($this.options.page.total);
-                        var startrecord = ($this.options.page.page - 1) * $this.options.page.rows + 1;
-                        var endrecord = ($this.options.page.page - 1) * $this.options.page.rows + data.rows.length;
-                        $this.$elem.find('.imggrid-right').html('显示第 ' + startrecord + ' - ' + endrecord + ' 条记录　检索到 ' + $this.options.page.records + ' 条记录');
-                        $this.data = data.rows;
-                        if (data.rows.length > 0) {
-                            var strs = [];
-                            $.each(data.rows, function (index, item) {
-                                strs.push('<li rowno="' + index + '">' + $this.options.render(item, index) + '</li>');
-                            })
-                            $this.$elem.find('.imggrid-list ul').html(strs.join(''));
-                            $this.$elem.find('.imggrid-list ul li').css('width', $this.options.img.width).css('height', $this.options.img.width);
-                            if ($this.options.onClick) {
-                                $this.$elem.find('.imggrid-list ul li').on('click', function () {
-                                    var $li = $(this);
-                                    var index = parseInt($li.attr('rowno'));
-                                    $this.options.onClick($li, index, $this.data[index]);
-                                });
-                            }
-                            if ($this.options.img.animate) {
-                                $this.$elem.find('.imggrid-list ul li img').animateCss($this.options.img.animate);
-                            }
-                        } else {
-                            $this.$elem.find('.imggrid-list  ul').html('<li>无数据</li>');
-                        }
-                    } else {
-                        alert(data.message);
+            if ($this.options.data) {//本地存储
+                var startIndex = ($this.options.page.page - 1) * $this.options.page.rows;
+                var endIndex = startIndex + $this.options.page.rows - 1;
+                var newdata = {
+                    page: $this.options.data.page,
+                    records: $this.options.data.records,
+                    rows: []
+                };
+                $.each($this.options.data.rows, function (index, item) {
+                    if (index >= startIndex && index <= endIndex) {
+                        newdata.rows.push(item);
                     }
-                }
-            });
+                });
+                $this.formatData(newdata);
+            } else {//ajax获取
+                $this.showLoading();
+                $.ajax({
+                    type: this.options.type, url: $this.options.url, data: $.param($.extend($this.defaults.page, $this.options.params)), dataType: 'json',
+                    success: function (data) {
+                        $this.hideLoading();
+                        if (!data.message) {
+                            $this.formatData(data);
+                        } else {
+                            alert(data.message);
+                        }
+                    }
+                });
+            }
         }
     }
     $.fn.imgGrid = function (options) {
