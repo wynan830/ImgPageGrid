@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://cdn.bootcss.com/animate.css/3.5.2/animate.min.css" rel="stylesheet">
+    <script src="http://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+    <link href="css/imggrid.css" rel="stylesheet" />
+    <script src="js/imggrid.js"></script>
+</head>
+<body style="padding:10px">
+    <div id="imggrid">
+    </div>
+    <script>
+        $('#imggrid').imgGrid({
+            title: '图片集',
+            type:'GET',//GET|POST
+            url: 'Data/data.json',//url
+            params: { type: 0 },//url参数
+            height: '400px',
+            width: '1000px',
+            img: { width: '200px', animate: 'zoomIn' },//图片宽度，及动画效果
+            onClick: function (obj,index, item) {//点击图片事件
+                alert(index);
+            },
+            render: function (item, index) {//自定义显示图片
+                var str = '<img src="' + item.ImgUrl + '">';
+                return str;
+            }
+        });
+    </script>
+</body>
+
+
+</html>
