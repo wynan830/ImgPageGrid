@@ -1,5 +1,6 @@
 # 图片列表分页插件
 图片分页插件，支持本地js数组分页加载和ajax服务器端加载。
+图片有多种展示动画效果，可以自定义，主要用到了animate.min.css，当然这个不是必须项，如果不需要，可以去掉animate.min.css引用。
 ##效果
 ![image](http://ojna4zpbt.bkt.clouddn.com/imgggrid.png)
 ##引用
